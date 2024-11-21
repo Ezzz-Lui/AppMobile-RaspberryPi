@@ -3,7 +3,7 @@
 ## Descripción
 
 Esta aplicación móvil permite visualizar datos de temperatura y humedad obtenidos de un sensor conectado a un Raspberry Pi 4. La aplicación está desarrollada con React Native y Expo, y utiliza TailwindCSS para el diseño de la interfaz de usuario.
-
+![Mockup final app](mock/Group.png)
 ## Stack Tecnológico
 
 - **React Native**: Framework para el desarrollo de aplicaciones móviles.
