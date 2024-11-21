@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 
 const BentoHeader = () => {
@@ -9,16 +9,46 @@ const BentoHeader = () => {
 
   const fetchData = async () => {
     try {
-      // Simulación de llamada a la API
-      const data = {
-        temperature: 25.3,
-        humidity: 65,
-      };
-      setTemperature(data.temperature);
-      setHumidity(data.humidity);
-      setApiResponse(data); // Guardar la respuesta completa en el estado
+      const API_URL = 'http://172.16.64.119:8080'; // Reemplaza con tu URL real
+
+      const response = await fetch(API_URL);
+      if (!response.ok) {
+        throw new Error(`Error en la API: ${response.status}`);
+      }
+
+      const textData = await response.text();
+      console.log('Respuesta de la API:', textData);
+
+      const parsedData = parsePlainTextData(textData);
+
+      if (parsedData.temperature !== undefined && parsedData.humidity !== undefined) {
+        setTemperature(parsedData.temperature);
+        setHumidity(parsedData.humidity);
+      } else {
+        console.warn('Datos incompletos en la respuesta:', parsedData);
+      }
+
+      setApiResponse(textData);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error al obtener datos de la API:', error);
+      setApiResponse(`Error: ${error.message}`);
+    }
+  };
+
+  const parsePlainTextData = (textData) => {
+    try {
+      // Suponiendo que el texto contiene "temperatura,humedad"
+      const values = textData.split(','); // Dividir por comas
+      if (values.length === 2) {
+        return {
+          temperature: parseFloat(values[0].trim()), // Primer valor como temperatura
+          humidity: parseFloat(values[1].trim()),    // Segundo valor como humedad
+        };
+      }
+      throw new Error('Formato inesperado en los datos de la API');
+    } catch (error) {
+      console.error('Error al procesar el texto plano:', error);
+      return {}; // Devuelve un objeto vacío si ocurre un error
     }
   };
 
@@ -30,7 +60,6 @@ const BentoHeader = () => {
 
   return (
     <View className="bg-gray-100 p-4 mt-8 flex-1">
-      {/* Barra superior con iconos y título */}
       <View className="flex-row justify-between items-center mb-4">
         <TouchableOpacity className="p-1">
           <Icon name="menu" size={24} color="#333" />
@@ -41,21 +70,20 @@ const BentoHeader = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Sección de mediciones */}
       <View className="bg-gray-200 rounded-xl p-4 mb-4 flex-1">
         <Text className="text-center text-lg font-semibold mb-4">Datos de Temperatura y Humedad</Text>
 
         <View className="mb-4">
           <Text className="text-lg">Temperatura:</Text>
           <Text className="text-2xl font-bold text-blue-600">
-            {temperature !== null ? `${temperature} °C` : 'N/A'}
+            {temperature !== null ? `${temperature} °C` : 'Cargando...'}
           </Text>
         </View>
 
         <View className="mb-4">
           <Text className="text-lg">Humedad:</Text>
           <Text className="text-2xl font-bold text-green-600">
-            {humidity !== null ? `${humidity} %` : 'N/A'}
+            {humidity !== null ? `${humidity} %` : 'Cargando...'}
           </Text>
         </View>
 
@@ -75,18 +103,14 @@ const BentoHeader = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Sección para mostrar la respuesta JSON */}
         {apiResponse && (
           <View className="bg-gray-300 rounded-xl p-4 mt-4">
-            <Text className="text-lg font-semibold mb-2">Respuesta de la API - Raspberry Pi:</Text>
-            <Text className="text-xs text-gray-700 font-semibold">
-              {JSON.stringify(apiResponse, null, 2)}
-            </Text>
+            <Text className="text-lg font-semibold mb-2">Respuesta de la API:</Text>
+            <Text className="text-xs text-gray-700 font-semibold">{apiResponse}</Text>
           </View>
         )}
       </View>
 
-      {/* Contenedor de los botones (estilo bento) */}
       <View className="flex-row justify-between mb-4">
         <TouchableOpacity className="bg-white rounded-xl p-4 items-center justify-center flex-1 mx-2">
           <Icon name="home" size={20} color="#333" />
